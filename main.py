@@ -1,54 +1,87 @@
-from fastapi import FastAPI, Request
+import json
 import requests
-import xml.etree.ElementTree as Et
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from typing import Dict
 
+# Variables globales para almacenar el JWT
+jwt_token: str = None
+
+# URL de la API externa
+API_URL = "https://api-smartpot.onrender.com/"
+
+# Endpoints de la API
+LOGIN_ENDPOINT = "auth/login"
+USERS_ENDPOINT = "Users/All"
+
+# Inicialización de FastAPI
 app = FastAPI()
 
-SPRING_BOOT_API_URL = "http://api-smartpot.onrender.com"
-LOGIN_URL = f"{SPRING_BOOT_API_URL}/auth/login"
-DATA_URL = f"{SPRING_BOOT_API_URL}/User/All"
 
+# Función para realizar login y obtener el JWT
+def obtener_jwt(usuario: str, contrasena: str) -> str:
+    login_url = f"{API_URL}{LOGIN_ENDPOINT}"
+    payload = {
+        "username": usuario,
+        "password": contrasena
+    }
 
-# Endpoint de login
-@app.post("/login")
-async def login(request: Request):
-    # Leemos el cuerpo de la solicitud (XML) como texto
-    xml_data = await request.body()
-
-    # Parseamos el XML para convertirlo en un diccionario
     try:
-        root = Et.fromstring(xml_data.decode('utf-8'))  # Decodificamos el byte string
-        email = root.find('email').text
-        password = root.find('password').text
+        response = requests.post(login_url, json=payload)
+        response.raise_for_status()  # Lanza una excepción si la respuesta es un error
+        return response.json().get("jwt", "")
+    except requests.exceptions.RequestException as e:
+        print(f"Error en la solicitud de login: {e}")
+        return ""
 
-        # Aquí puedes hacer la validación de las credenciales si es necesario
-        payload = {
-            "email": email,
-            "password": password
-        }
 
-        # Realizamos la solicitud a LOGIN_URL
-        headers = {
-            'User-Agent': 'SmartPot-Middleware/1.0.0 (https://smartpot-middleware.onrender.com)',
-            'Content-Type': 'application/json',  # Si la API de destino espera JSON
-        }
+# Función para interactuar con la API de usuarios usando el JWT
+def obtener_usuarios() -> Dict:
+    if jwt_token is None:
+        raise Exception("No hay JWT disponible.")
 
-        response = requests.post(LOGIN_URL, headers=headers, json=payload)
+    usuarios_url = f"{API_URL}{USERS_ENDPOINT}"
+    headers = {"Authorization": f"Bearer {jwt_token}"}
 
-        # Regresamos la respuesta como texto
-        return response.text
+    try:
+        response = requests.get(usuarios_url, headers=headers)
+        response.raise_for_status()
+        return response.json()  # Retorna los datos de los usuarios
+    except requests.exceptions.RequestException as e:
+        print(f"Error al obtener usuarios: {e}")
+        return {}
 
-    except Et.ParseError as e:
-        return {"error": "Invalid XML", "details": str(e)}
 
-@app.get("/User/All")
-async def get_data(request: Request):
-    token = request.headers.get("Authorization")
-    if not token:
-        return {"error": "No token provided"}, 403
-    headers = {"Authorization": token}
-    response = requests.get(DATA_URL, headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return {"error": "Failed to retrieve data"}, response.status_code
+# WebSocket para recibir credenciales del IoT
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    try:
+        while True:
+            # Recibir los datos de las credenciales
+            data = await websocket.receive_text()
+            credentials = json.loads(data)
+
+            if "usuario" in credentials and "contrasena" in credentials:
+                usuario = credentials["usuario"]
+                contrasena = credentials["contrasena"]
+
+                # Obtener el JWT desde la API
+                global jwt_token
+                jwt_token = obtener_jwt(usuario, contrasena)
+
+                if jwt_token:
+                    await websocket.send_text("Autenticación exitosa, JWT recibido.")
+                else:
+                    await websocket.send_text("Error al obtener el JWT.")
+
+            # Lógica adicional para recibir instrucciones y realizar más solicitudes
+            # Ejemplo: Si el IoT solicita obtener usuarios
+            # Esto podría incluir validaciones adicionales
+            if jwt_token:
+                usuarios = obtener_usuarios()
+                await websocket.send_text(json.dumps(usuarios))
+
+    except WebSocketDisconnect:
+        print("El dispositivo IoT se desconectó.")
+
