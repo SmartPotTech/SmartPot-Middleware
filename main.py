@@ -9,6 +9,8 @@ DATA_URL = f"{SPRING_BOOT_API_URL}/User/All"
 
 @app.post("/login")
 async def login(request: Request):
+    return 'hola'
+    '''
     credentials = await request.json()
     response = requests.post(LOGIN_URL, json=credentials)
     if response.status_code == 200:
@@ -16,6 +18,7 @@ async def login(request: Request):
         return {"token": token}
     else:
         return {"error": "Authentication failed"}, 401
+    '''
 
 @app.get("/get_data")
 async def get_data(request: Request):
