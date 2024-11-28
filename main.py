@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 import requests
 import json
-from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -9,29 +8,18 @@ SPRING_BOOT_API_URL = "http://api-smartpot.onrender.com"
 LOGIN_URL = f"{SPRING_BOOT_API_URL}/auth/login"
 DATA_URL = f"{SPRING_BOOT_API_URL}/User/All"
 
-
-# Definir un modelo para las credenciales que recibirá el endpoint
-class LoginCredentials(BaseModel):
-    email: str
-    password: str
-
-
 @app.post("/login")
-async def login(credentials: LoginCredentials):
-    # Convertir las credenciales en el formato adecuado para la petición
+async def login(request: Request):
     payload = json.dumps({
-        "email": credentials.email,
-        "password": credentials.password
+        "email": "juan.perez@example.com",
+        "password": "Contraseña1"
     })
-
     headers = {
         'User-Agent': 'SmartPot-Middleware/1.0.0 (https://smartpot-middleware.onrender.com)',
         'Content-Type': 'application/json'
     }
 
-    # Realizar la solicitud al servicio de login con las credenciales proporcionadas
-    response = requests.post(LOGIN_URL, headers=headers, data=payload)
-
+    response = requests.request("POST", LOGIN_URL, headers=headers, data=payload)
     return response.text
 
 @app.get("/get_data")
