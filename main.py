@@ -6,6 +6,17 @@ app = FastAPI()
 
 API_URL = "https://api-smartpot.onrender.com/"
 
+def validate_jwt_format(token):
+    """Valida que el JWT tenga el formato correcto."""
+    parts = token.split('.')
+    if len(parts) == 3:
+        print("Formato JWT válido")
+        return True
+    else:
+        print("Formato JWT inválido")
+        return False
+
+
 @app.post("/login")
 async def login(request: Request):
     """
@@ -38,6 +49,9 @@ async def login(request: Request):
 
         if not current_jwt:
             return JSONResponse(status_code=400, content={"message": "JWT not found in the response"})
+        
+        if not validate_jwt_format(current_jwt):
+            return JSONResponse(status_code=400, content={"message": "Incorrect JWT in the response. "+current_jwt})
 
         return JSONResponse(status_code=200, content={"message": "Login successful", "token": current_jwt})
 
