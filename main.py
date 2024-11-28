@@ -1,33 +1,47 @@
 from fastapi import FastAPI, Request
 import requests
-import json
-from pydantic import BaseModel
+import xml.etree.ElementTree as Et
+
 app = FastAPI()
 
 SPRING_BOOT_API_URL = "http://api-smartpot.onrender.com"
 LOGIN_URL = f"{SPRING_BOOT_API_URL}/auth/login"
 DATA_URL = f"{SPRING_BOOT_API_URL}/User/All"
 
-# Modelo de las credenciales
-class LoginCredentials(BaseModel):
-    email: str
-    password: str
 
+# Endpoint de login
 @app.post("/login")
-async def login(credentials: LoginCredentials):
-    payload = json.dumps({
-        "email": "juan.perez@example.com",
-        "password": "Contraseña1"
-    })
-    headers = {
-        'User-Agent': 'SmartPot-Middleware/1.0.0 (https://smartpot-middleware.onrender.com)',
-        'Content-Type': 'application/json'
-    }
+async def login(request: Request):
+    # Leemos el cuerpo de la solicitud (XML) como texto
+    xml_data = await request.body()
 
-    response = requests.request("POST", LOGIN_URL, headers=headers, data=payload)
-    return response.text
+    # Parseamos el XML para convertirlo en un diccionario
+    try:
+        root = Et.fromstring(xml_data.decode('utf-8'))  # Decodificamos el byte string
+        email = root.find('email').text
+        password = root.find('password').text
 
-@app.get("/get_data")
+        # Aquí puedes hacer la validación de las credenciales si es necesario
+        payload = {
+            "email": email,
+            "password": password
+        }
+
+        # Realizamos la solicitud a LOGIN_URL
+        headers = {
+            'User-Agent': 'SmartPot-Middleware/1.0.0 (https://smartpot-middleware.onrender.com)',
+            'Content-Type': 'application/json',  # Si la API de destino espera JSON
+        }
+
+        response = requests.post(LOGIN_URL, headers=headers, json=payload)
+
+        # Regresamos la respuesta como texto
+        return response.text
+
+    except Et.ParseError as e:
+        return {"error": "Invalid XML", "details": str(e)}
+
+@app.get("/User/All")
 async def get_data(request: Request):
     token = request.headers.get("Authorization")
     if not token:
