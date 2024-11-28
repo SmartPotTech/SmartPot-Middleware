@@ -2,8 +2,6 @@ import requests
 import xmltodict
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-
-current_jwt = None
 app = FastAPI()
 
 API_URL = "https://api-smartpot.onrender.com/"
@@ -14,7 +12,6 @@ async def login(request: Request):
     Recibe las credenciales en formato XML, hace la solicitud a la API
     para obtener el JWT y lo guarda para sesiones posteriores.
     """
-    global current_jwt
 
     body = await request.body()
     try:
@@ -42,36 +39,8 @@ async def login(request: Request):
         if not current_jwt:
             return JSONResponse(status_code=400, content={"message": "JWT not found in the response"})
 
-        return JSONResponse(status_code=200, content={"message": "Login successful", "status": "authenticated"})
+        return JSONResponse(status_code=200, content={"message": "Login successful", "token": current_jwt})
 
     except Exception as e:
         return JSONResponse(status_code=500,
-                            content={"message": "Error parsing credentials or fetching JWT", "error": str(e)})
-
-
-@app.get("/users")
-async def get_all_users():
-    """
-    Hace una solicitud GET a la API con el JWT almacenado para obtener los usuarios.
-    """
-    global current_jwt
-
-    if not current_jwt:
-        return JSONResponse(status_code=400, content={"message": "JWT not available"})
-
-    headers = {
-        "Authorization": f"Bearer {current_jwt}"
-    }
-
-    try:
-        users_url = f"{API_URL}Users/All"
-        response = requests.get(users_url, headers=headers)
-
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return JSONResponse(status_code=response.status_code,
-                                content={"message": "Failed to fetch users", "error": response.text})
-
-    except requests.RequestException as e:
-        return JSONResponse(status_code=500, content={"message": "Error fetching users", "error": str(e)})
+                            content={"message": "Error parsing credentials or fetching JWT. "+str(e)})
