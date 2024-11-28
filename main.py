@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 import requests
+import json
 
 app = FastAPI()
 
@@ -9,16 +10,17 @@ DATA_URL = f"{SPRING_BOOT_API_URL}/User/All"
 
 @app.post("/login")
 async def login(request: Request):
-    return 'hola'
-    '''
-    credentials = await request.json()
-    response = requests.post(LOGIN_URL, json=credentials)
-    if response.status_code == 200:
-        token = response.json()["token"]
-        return {"token": token}
-    else:
-        return {"error": "Authentication failed"}, 401
-    '''
+    payload = json.dumps({
+        "email": "juan.perez@example.com",
+        "password": "Contraseña1"
+    })
+    headers = {
+        'User-Agent': 'Apidog/1.0.0 (https://apidog.com)',
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", LOGIN_URL, headers=headers, data=payload)
+    return response.text
 
 @app.get("/get_data")
 async def get_data(request: Request):
