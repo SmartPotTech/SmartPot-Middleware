@@ -1,15 +1,20 @@
 from fastapi import FastAPI, Request
 import requests
 import json
-
+from pydantic import BaseModel
 app = FastAPI()
 
 SPRING_BOOT_API_URL = "http://api-smartpot.onrender.com"
 LOGIN_URL = f"{SPRING_BOOT_API_URL}/auth/login"
 DATA_URL = f"{SPRING_BOOT_API_URL}/User/All"
 
+# Modelo de las credenciales
+class LoginCredentials(BaseModel):
+    email: str
+    password: str
+
 @app.post("/login")
-async def login(request: Request):
+async def login(credentials: LoginCredentials):
     payload = json.dumps({
         "email": "juan.perez@example.com",
         "password": "Contraseña1"
