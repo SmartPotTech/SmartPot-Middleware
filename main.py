@@ -21,15 +21,15 @@ async def login(request: Request):
         data = xmltodict.parse(body)
         credentials = data.get('credentials', {})
 
-        username = credentials.get('email')
+        email = credentials.get('email')
         password = credentials.get('password')
 
-        if not username or not password:
+        if not email or not password:
             return JSONResponse(status_code=400, content={"message": "Missing credentials"})
 
         auth_url = f"{API_URL}auth/login"
         auth_payload = {
-            "username": username,
+            "email": email,
             "password": password
         }
         auth_response = requests.post(auth_url, json=auth_payload)
