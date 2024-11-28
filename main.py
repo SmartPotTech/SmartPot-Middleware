@@ -1,10 +1,12 @@
 import requests
-import xmltodict
+import xml.etree.ElementTree as Et
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
 app = FastAPI()
 
 API_URL = "https://api-smartpot.onrender.com/"
+
 
 def validate_jwt_format(token):
     """Valida que el JWT tenga el formato correcto."""
@@ -21,16 +23,14 @@ def validate_jwt_format(token):
 async def login(request: Request):
     """
     Recibe las credenciales en formato XML, hace la solicitud a la API
-    para obtener el JWT y lo guarda para sesiones posteriores.
+    para obtener el JWT.
     """
-
-    body = await request.body()
     try:
-        data = xmltodict.parse(body)
-        credentials = data.get('credentials', {})
+        body = await request.body()
+        data = Et.fromstring(body.decode('utf-8'))
 
-        email = credentials.get('email')
-        password = credentials.get('password')
+        email = data.findtext('email')
+        password = data.findtext('password')
 
         if not email or not password:
             return JSONResponse(status_code=400, content={"message": "Missing credentials"})
@@ -49,12 +49,14 @@ async def login(request: Request):
 
         if not current_jwt:
             return JSONResponse(status_code=400, content={"message": "JWT not found in the response"})
-        
+
         if not validate_jwt_format(current_jwt):
-            return JSONResponse(status_code=400, content={"message": "Incorrect JWT in the response. "+current_jwt})
+            return JSONResponse(status_code=400, content={"message": "Incorrect JWT in the response. " + current_jwt})
 
         return JSONResponse(status_code=200, content={"message": "Login successful", "token": current_jwt})
 
+    except Et.ParseError as e:
+        return JSONResponse(status_code=400, content={"message": "Error parsing XML: " + str(e)})
     except Exception as e:
         return JSONResponse(status_code=500,
-                            content={"message": "Error parsing credentials or fetching JWT. "+str(e)})
+                            content={"message": "Error parsing credentials or fetching JWT. " + str(e)})
