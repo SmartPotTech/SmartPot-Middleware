@@ -21,7 +21,7 @@ async def login(request: Request):
         data = xmltodict.parse(body)
         credentials = data.get('credentials', {})
 
-        username = credentials.get('username')
+        username = credentials.get('email')
         password = credentials.get('password')
 
         if not username or not password:
