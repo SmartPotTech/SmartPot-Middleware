@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Request
 import requests
 import xmltodict
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 current_jwt = None
-
 app = FastAPI()
 
 API_URL = "https://api-smartpot.onrender.com/"
@@ -43,10 +42,13 @@ async def login(request: Request):
         if not current_jwt:
             return JSONResponse(status_code=400, content={"message": "JWT not found in the response"})
 
-        return JSONResponse(status_code=200, content={"message": "JWT obtained successfully", "token": current_jwt})
+        return JSONResponse(status_code=200, content={"message": "Login successful", "status": "authenticated"})
 
     except Exception as e:
-        return JSONResponse(status_code=500, content={"message": "Error parsing credentials or fetching JWT", "error": str(e)})
+        # Manejo de errores
+        return JSONResponse(status_code=500,
+                            content={"message": "Error parsing credentials or fetching JWT", "error": str(e)})
+
 
 @app.get("/users")
 async def get_all_users():
@@ -69,8 +71,8 @@ async def get_all_users():
         if response.status_code == 200:
             return response.json()
         else:
-            return JSONResponse(status_code=response.status_code, content={"message": "Failed to fetch users", "error": response.text})
+            return JSONResponse(status_code=response.status_code,
+                                content={"message": "Failed to fetch users", "error": response.text})
 
     except requests.RequestException as e:
         return JSONResponse(status_code=500, content={"message": "Error fetching users", "error": str(e)})
-
