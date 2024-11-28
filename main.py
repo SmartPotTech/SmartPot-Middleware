@@ -3,7 +3,7 @@ import requests
 
 app = FastAPI()
 
-SPRING_BOOT_API_URL = "https://api-smartpot.onrender.com"
+SPRING_BOOT_API_URL = "http://api-smartpot.onrender.com"
 LOGIN_URL = f"{SPRING_BOOT_API_URL}/auth/login"
 DATA_URL = f"{SPRING_BOOT_API_URL}/User/All"
 
