@@ -37,7 +37,7 @@ async def login(request: Request):
         if auth_response.status_code != 200:
             return JSONResponse(status_code=auth_response.status_code, content={"message": "Authentication failed"})
 
-        current_jwt = auth_response.json().get("token")
+        current_jwt = auth_response.text
 
         if not current_jwt:
             return JSONResponse(status_code=400, content={"message": "JWT not found in the response"})
@@ -45,7 +45,6 @@ async def login(request: Request):
         return JSONResponse(status_code=200, content={"message": "Login successful", "status": "authenticated"})
 
     except Exception as e:
-        # Manejo de errores
         return JSONResponse(status_code=500,
                             content={"message": "Error parsing credentials or fetching JWT", "error": str(e)})
 
