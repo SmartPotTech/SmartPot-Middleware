@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+#load_dotenv()
 API_URL = os.getenv("API_URL")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
