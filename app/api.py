@@ -1,5 +1,5 @@
 import httpx
-from settings import API_URL
+from app.settings import API_URL
 
 
 async def fetch_data_from_api(url: str, payload: dict, headers: dict = None):
