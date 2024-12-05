@@ -1,6 +1,6 @@
 import jwt
 from jwt.exceptions import JWTException
-from settings import SECRET_KEY
+from app.settings import SECRET_KEY
 
 def validate_jwt(token):
     """Valida que el JWT tenga el formato correcto."""
