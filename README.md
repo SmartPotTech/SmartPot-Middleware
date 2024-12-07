@@ -7,7 +7,7 @@
 2. Ejecuta el siguiente comando para construir la imagen Docker:
 
    ```bash
-   docker build -t middleware-smartpot:latest .
+   docker build -t sebastian190030/middleware-smartpot:latest .
    ```
 
    **Explicación**:
@@ -35,23 +35,7 @@ docker login
 
 Una vez que inicies sesión correctamente, Docker te permitirá subir imágenes a tu cuenta de Docker Hub.
 
-### 2.2 **Etiquetar la Imagen Docker**
-
-Antes de poder subir la imagen, debes etiquetarla con el nombre de tu repositorio en Docker Hub. Esto garantiza que la imagen se almacene en el repositorio correcto.
-
-Ejecuta el siguiente comando para etiquetar la imagen:
-
-```bash
-docker tag middleware-smartpot:latest sebastian190030/middleware-smartpot:latest
-```
-
-**Explicación**:
-- **`docker tag`**: Este comando asigna una nueva etiqueta a la imagen Docker. En este caso, estamos etiquetando la imagen `middleware-smartpot:latest` con el nombre de usuario de Docker Hub seguido del nombre del repositorio.
-- **`sebastian190030/middleware-smartpot:latest`**: Asegúrate de reemplazar `sebastian190030` con tu nombre de usuario de Docker Hub.
-
-Esta etiqueta indica que la imagen se almacenará en el repositorio `middleware-smartpot` bajo el nombre de usuario `sebastian190030`.
-
-### 2.3 **Subir la Imagen a Docker Hub**
+### 2.2 **Subir la Imagen a Docker Hub**
 
 Finalmente, para subir la imagen a Docker Hub, ejecuta el siguiente comando:
 
