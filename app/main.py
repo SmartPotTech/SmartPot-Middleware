@@ -42,7 +42,8 @@ async def manage_login(request: Request):
         return JSONResponse(status_code=200, content={"message": "Login successful", "token": current_jwt})
 
     except Et.ParseError as e:
-        return JSONResponse(status_code=400, content={"message": "Error parsing XML: " + str(e)})
+        logging.error("XML parse error during login request: %s", str(e))
+        return JSONResponse(status_code=400, content={"message": "Error parsing XML request."})
     except Exception as e:
         return JSONResponse(status_code=500,
                             content={"message": "Error parsing credentials or fetching JWT. " + str(e)})
