@@ -45,8 +45,9 @@ async def manage_login(request: Request):
         logging.error("XML parse error during login request: %s", str(e))
         return JSONResponse(status_code=400, content={"message": "Error parsing XML request."})
     except Exception as e:
+        logging.error("Error in manage_login: %s", str(e), exc_info=True)
         return JSONResponse(status_code=500,
-                            content={"message": "Error parsing credentials or fetching JWT. " + str(e)})
+                            content={"message": "Internal server error"})
 
 @app.post("/create_record")
 async def manage_create_record(request: Request):
