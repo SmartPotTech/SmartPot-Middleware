@@ -73,5 +73,6 @@ async def manage_create_record(request: Request):
         logging.error(f"ValueError in /create_record: {ve}")
         return JSONResponse(status_code=400, content={"message": "Invalid input data."})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"message": "Internal server error: " + str(e)})
+        logging.exception("Internal server error encountered during record creation.")
+        return JSONResponse(status_code=500, content={"message": "Internal server error"})
 
